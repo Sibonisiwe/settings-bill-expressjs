@@ -1,6 +1,8 @@
 const express = require('express');
 const exphbs = require('express-handlebars');
 const bodyParser = require('body-parser');
+const moment = require('moment')
+moment().format()
 const SettingsBill = require('./settings-bill');
 const app = express();
 const settingsBill = SettingsBill();
@@ -21,7 +23,8 @@ app.use(bodyParser.json())
 app.get('/', function(req, res){
   res.render("index", {
       settings: settingsBill.getSettings(),
-      totals: settingsBill.totals()
+      totals: settingsBill.totals(),
+      code: settingsBill.colorCode()
 });
 });
 
@@ -62,12 +65,21 @@ app.post('/action', function(req, res){
 });
 
 app.get('/actions', function(req, res){
-  res.render('actions', {actions: settingsBill.actions()});
+ var action =  settingsBill.actions()
+for(let props of action){
+  props.ago =  moment(props.timestamp).fromNow()
+}
+  res.render('actions', {actions:action});
 });
 
 app.get('/actions/:actionType', function(req, res){
   const actionType = req.params.actionType;
-  res.render('actions', {actions: settingsBill.actionsFor(actionType)});
+  var actionList = settingsBill.actionsFor(actionType)
+  for(let props of actionList) {
+  
+    props.ago = moment(props.timestamp).fromNow()
+  }
+  res.render('actions', {actions: actionList});
 });
 
 //make port number configurable
